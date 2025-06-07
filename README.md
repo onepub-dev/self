@@ -261,5 +261,3 @@ The DCli SDK provides tools to help you iteract with the file system when
 running as sudo.
 
 [Elevated Privileges](https://dcli.onepub.dev/elevated-privileges)
-
-# self
