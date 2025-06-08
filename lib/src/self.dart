@@ -46,12 +46,14 @@ class Self {
   /// Launches the application as a sub process.
   /// If the sub-process exits with anything other
   /// than exit code 0, we restart it.
-  void launch({required List<String> args}) {
+  Future<void> launch({required List<String> args}) async {
     logger.info('Launching $basename from $executableName');
 
     // start the server and relaunch it if it fails.
     for (;;) {
-      final result = startFromArgs(
+      final result = 
+      
+      startFromArgs(
         _pathToExecutable,
         args,
         nothrow: true,
@@ -60,7 +62,8 @@ class Self {
       logger
         ..severe('$basename failed with exitCode: ${result.exitCode}')
         ..info('restarting $basename in 10 seconds');
-      sleep(10);
+
+      await sleepAsync(10);
     }
   }
 
@@ -68,6 +71,8 @@ class Self {
 
   /// Adds a cron job to restart the application when the system
   /// boots.
+  /// The application's working directory is set to the
+  /// [installPath].
   /// The [args] parameters are passed
   /// to the application when it is started as command line
   /// arguments.
@@ -75,7 +80,12 @@ class Self {
     required List<String> args,
     required String runAsUser,
   }) {
-    CronManager(logger).addBoot(_pathToExecutable, args, runAsUser);
+    CronManager(logger).addBoot(
+      pathToExecutable: _pathToExecutable,
+      workingDirectory: installPath,
+      args: args,
+      runAsUser: runAsUser,
+    );
   }
 
   /// Installs the application, unpacking any resources.
@@ -83,7 +93,7 @@ class Self {
     /// Installs the application into the [installPath].
     final pathToExe = truepath(installPath, executableName);
 
-    print('Creating install directory');
+    print('Creating install directory: $installPath');
     if (!exists(installPath)) {
       createDir(installPath);
     }

@@ -10,7 +10,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  dcli: ^7.0.3
+  dcli: ^7.0.5
   dcli_core: ^7.0.3
   path: ^1.9.1
   # path: ^1.8.0
