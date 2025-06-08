@@ -128,7 +128,7 @@ Future<void> _run(List<String> args, MyLogger logger) async {
 // into an endless loop.
 Future<void> _launch(List<String> args, Self self) async {
   final trimmedArgs = args.toList(growable: true)..remove('--launch');
-  self.launch(args: [...trimmedArgs, '--debug']);
+  await self.launch(args: [...trimmedArgs, '--debug']);
   await exitWithFlush(0);
 }
 
