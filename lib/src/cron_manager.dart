@@ -16,7 +16,12 @@ class CronManager {
   /// The file extension is removed from the name.
   /// You can view the cronjob's details by running:
   /// crontab -l
-  void addBoot(String pathToExecutable, List<String> args, String runAsUser) {
+  void addBoot({
+    required String pathToExecutable,
+    required List<String> args,
+    required String workingDirectory,
+    required String runAsUser,
+  }) {
     final basename = basenameWithoutExtension(pathToExecutable);
     print('Adding cronjob to start $basename with $args on reboot');
 
@@ -25,8 +30,10 @@ class CronManager {
     /// Create a cron job that launches the app on boot.
     final pathToCronJob = join(rootPath, 'etc', 'cron.d', basename)
       ..write('''
-@reboot $runAsUser $pathToExecutable  $expandedArgs
+@reboot   $runAsUser  'cd $workingDirectory && $pathToExecutable $expandedArgs'
 ''');
+
+    // @reboot  cd /home/bsutton/myapp && ./myapp --launch
 
     print('''
 To view the cron job run:
