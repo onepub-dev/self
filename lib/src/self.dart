@@ -51,9 +51,7 @@ class Self {
 
     // start the server and relaunch it if it fails.
     for (;;) {
-      final result = 
-      
-      startFromArgs(
+      final result = startFromArgs(
         _pathToExecutable,
         args,
         nothrow: true,
@@ -79,12 +77,14 @@ class Self {
   void addBootLauncher({
     required List<String> args,
     required String runAsUser,
+    String? altCronPath,
   }) {
     CronManager(logger).addBoot(
       pathToExecutable: _pathToExecutable,
       workingDirectory: installPath,
       args: args,
       runAsUser: runAsUser,
+      altCronPath: altCronPath,
     );
   }
 

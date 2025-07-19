@@ -12,7 +12,10 @@ class CronManager {
 
   /// Add cron job so we get rebooted each time the system is rebooted.
   /// The cron job is added by creating a file called:
-  ///   `/etc/cron.d/<execurable_name>`
+  ///   `/etc/cron.d/<execurable_name>` unless you pass i [altCronPath]
+  /// in which case the cron job is added into the file at [altCronPath].
+  /// The [altCronPath] must be recognized by OS cron system as a valid path
+  /// to load cron files from.
   /// The file extension is removed from the name.
   /// You can view the cronjob's details by running:
   /// crontab -l
@@ -21,6 +24,7 @@ class CronManager {
     required List<String> args,
     required String workingDirectory,
     required String runAsUser,
+    String? altCronPath,
   }) {
     final basename = basenameWithoutExtension(pathToExecutable);
     print('Adding cronjob to start $basename with $args on reboot');
@@ -28,9 +32,10 @@ class CronManager {
     final expandedArgs = args.join(' ');
 
     /// Create a cron job that launches the app on boot.
-    final pathToCronJob = join(rootPath, 'etc', 'cron.d', basename)
-      ..write('''
-@reboot   $runAsUser  'cd $workingDirectory && $pathToExecutable $expandedArgs'
+    final pathToCronJob =
+        altCronPath ?? join(rootPath, 'etc', 'cron.d', basename)
+          ..write('''
+@reboot   $runAsUser  cd $workingDirectory && $pathToExecutable $expandedArgs
 ''');
 
     // @reboot  cd /home/bsutton/myapp && ./myapp --launch

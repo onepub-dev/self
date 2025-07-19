@@ -3,7 +3,7 @@ description: The Self package provides utility classes to make it easy
   to create Self extracting executables that ship with resources
   or need to run on boot.
   
-version: 0.3.0
+version: 0.4.0
 
 environment:
   sdk: ^3.8.0
