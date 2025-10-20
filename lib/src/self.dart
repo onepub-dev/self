@@ -9,6 +9,18 @@ import 'cron_manager.dart' show CronManager;
 import 'self_logger.dart';
 
 class Self {
+  static Self? _self;
+
+  final String executableName;
+
+  final String basename;
+
+  final SelfLogger logger;
+
+  final String installPath;
+
+  final Map<String, PackedResource> resources;
+
   /// Pass in the directory [installPath] where you want the executable
   /// to be installed.
   /// The [executableName] defines the name the executable is to
@@ -35,13 +47,6 @@ class Self {
     required this.installPath,
     required this.resources,
   }) : basename = basenameWithoutExtension(executableName);
-  static Self? _self;
-
-  final String executableName;
-  final String basename;
-  final SelfLogger logger;
-  final String installPath;
-  final Map<String, PackedResource> resources;
 
   /// Launches the application as a sub process.
   /// If the sub-process exits with anything other

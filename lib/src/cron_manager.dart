@@ -6,9 +6,9 @@ import 'package:path/path.dart';
 import 'self_logger.dart';
 
 class CronManager {
-  CronManager(this.logger);
-
   SelfLogger logger;
+
+  CronManager(this.logger);
 
   /// Add cron job so we get rebooted each time the system is rebooted.
   /// The cron job is added by creating a file called:

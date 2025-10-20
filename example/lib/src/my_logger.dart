@@ -7,14 +7,14 @@ import 'package:self/src/self_logger.dart';
 
 /// Example logger that logs uses the logging package from pub.dev
 class MyLogger implements SelfLogger {
+  final Logger _logger;
+
+  late final IOSink _sink;
+
   MyLogger._(String logFilePath, {required bool debug})
     : _logger = Logger('MyLogger') {
     _configureLogging(logFilePath, debug: debug);
   }
-
-  final Logger _logger;
-
-  late final IOSink _sink;
 
   @override
   void fine(Object? message, {Object? error, StackTrace? stackTrace}) =>
