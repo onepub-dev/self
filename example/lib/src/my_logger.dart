@@ -17,6 +17,10 @@ class MyLogger implements SelfLogger {
   }
 
   @override
+  void finer(Object? message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.finer(message, error, stackTrace);
+
+  @override
   void fine(Object? message, {Object? error, StackTrace? stackTrace}) =>
       _logger.fine(message, error, stackTrace);
 

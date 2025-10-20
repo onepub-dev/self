@@ -3,6 +3,7 @@
 /// log system.
 /// Implement each method passing the details to your existing logger.
 abstract interface class SelfLogger {
+  void finer(Object? message, {Object? error, StackTrace? stackTrace});
   void fine(Object? message, {Object? error, StackTrace? stackTrace});
   void info(Object? message, {Object? error, StackTrace? stackTrace});
   void warning(Object? message, {Object? error, StackTrace? stackTrace});

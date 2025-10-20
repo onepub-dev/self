@@ -1,3 +1,6 @@
+# 0.5.1 
+- add 'finer' entry point to the SelfLogger.
+
 # 0.5.0
 - upgraded to dcli 8.1.1
 
