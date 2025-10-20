@@ -1,3 +1,6 @@
+# 0.5.0
+- upgraded to dcli 8.1.1
+
 # 0.4.0
 - Added the ability to provide an alternate cron path in which to place
 the cron jobs.

@@ -3,17 +3,15 @@ description: The Self package provides utility classes to make it easy
   to create Self extracting executables that ship with resources
   or need to run on boot.
   
-version: 0.4.0
+version: 0.5.0
 
 environment:
   sdk: ^3.8.0
 
-# Add regular dependencies here.
 dependencies:
-  dcli: ^7.0.5
-  dcli_core: ^7.0.3
+  dcli: ^8.1.1
+  dcli_core: ^8.0.0
   path: ^1.9.1
-  # path: ^1.8.0
 
 dev_dependencies:
   args: ^2.7.0
