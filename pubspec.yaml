@@ -9,7 +9,7 @@ environment:
   sdk: ^3.8.0
 
 dependencies:
-  dcli: ^8.1.1
+  dcli: ^8.2.0
   dcli_core: ^8.0.0
   path: ^1.9.1
 
