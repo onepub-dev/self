@@ -149,7 +149,7 @@ Unable to delete $pathToExe, ensure the process has stopped and try again''');
       final resourceDir = dirname(localPathTo);
 
       if (!exists(resourceDir)) {
-        createDir(resourceDir);
+        createDir(resourceDir, recursive: true);
       }
 
       logger.info('unpacking resources to: $localPathTo');

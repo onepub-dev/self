@@ -1,3 +1,8 @@
+# 0.6.1
+- fixed a bug in the unpack resource logic. If multi-level path
+was being unpacked and the parent directory didn't exist the unpack
+fails. We now create the directory recursively so all parents are created.
+
 # 0.6.0
 - upgraded to dcli 8.2.0
 
