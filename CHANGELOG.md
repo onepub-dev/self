@@ -1,3 +1,6 @@
+# 0.7.0
+- upgraded to dcli 9.0.1.
+
 # 0.6.1
 - fixed a bug in the unpack resource logic. If multi-level path
 was being unpacked and the parent directory didn't exist the unpack
