@@ -1,3 +1,6 @@
+# 0.8.0
+- upgraded to dcli 10.0.0
+
 # 0.7.0
 - upgraded to dcli 9.0.1.
 
