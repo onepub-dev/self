@@ -1,3 +1,11 @@
+# 0.8.1
+- Quote and validate cron fields and atomically replace cron files.
+- Reject unsafe resource paths and symlinks; stage installation files privately
+  on the destination filesystem before rename. Existing POSIX resource modes are
+  preserved. Trusted ancestors remain required.
+- Stop on successful child exit and bound failure restarts (five by default).
+- Fix example launch aliases and ensure privilege release on exceptions.
+
 # 0.8.0
 - upgraded to dcli 10.0.0
 

@@ -27,4 +27,5 @@ doc/api/
 .flutter-plugins-dependencies
 .failed_tracker
 custom_lint.log
+logs/
 node_modules/**

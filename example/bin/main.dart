@@ -1,4 +1,5 @@
-#! /home/bsutton/apps/flutter/bin/dart
+#! /usr/bin/env dcli
+
 // ignore_for_file: avoid_print, avoid_catches_without_on_clauses
 
 import 'dart:io' as io;
@@ -8,6 +9,8 @@ import 'package:dcli/dcli.dart';
 import 'package:self/src/dcli/resource/generated/resource_registry.g.dart';
 import 'package:self/src/self.dart';
 
+// ignore: avoid_relative_lib_imports
+import '../lib/src/launch_args.dart';
 // ignore: avoid_relative_lib_imports
 import '../lib/src/my_logger.dart';
 
@@ -89,7 +92,7 @@ Extracts and installs the application, adding a cronjob so it launches on boot.
 
   /// we are running in launch mode
   if (launch) {
-    await _launch(args, self);
+    await _launch(results, self);
   }
 
   if (run) {
@@ -121,14 +124,9 @@ Future<void> _run(List<String> args, MyLogger logger) async {
   await exitWithFlush(0);
 }
 
-// Launch this application along with any command line arguments you
-// want passed to your app
-// By using ..args we are taken any args passed from the command
-// but we MUST remove the --launch flag otherwise we will get
-// into an endless loop.
-Future<void> _launch(List<String> args, Self self) async {
-  final trimmedArgs = args.toList(growable: true)..remove('--launch');
-  await self.launch(args: [...trimmedArgs, '--debug']);
+// Select run mode explicitly for either parsed launcher alias.
+Future<void> _launch(ArgResults results, Self self) async {
+  await self.launch(args: childArguments(results));
   await exitWithFlush(0);
 }
 
@@ -153,12 +151,16 @@ sudo env PATH="\$PATH" ./${DartScript.self.basename} --install
     }
 
     // regain sudo priviliges to install the cron job.
-    Shell.current.withPrivileges(() {
-      self.addBootLauncher(
-        args: ['--launch'],
-        runAsUser: Shell.current.loggedInUser!,
-      );
-    });
+    try {
+      Shell.current.withPrivileges(() {
+        self.addBootLauncher(
+          args: ['--launch'],
+          runAsUser: Shell.current.loggedInUser!,
+        );
+      });
+    } finally {
+      Shell.current.releasePrivileges();
+    }
   }
 
   // add any additional installation steps here.

@@ -6,6 +6,8 @@ import 'package:dcli/dcli.dart';
 import 'package:path/path.dart';
 
 import 'cron_manager.dart' show CronManager;
+import 'restart.dart';
+import 'safe_files.dart';
 import 'self_logger.dart';
 
 class Self {
@@ -31,11 +33,18 @@ class Self {
     required String executableName,
     required Map<String, PackedResource> resources,
   }) {
+    validateExecutableName(executableName);
+    for (final resource in resources.values) {
+      validateResourcePath(resource.originalPath);
+      if (resource.originalPath.toLowerCase() == executableName.toLowerCase()) {
+        throw ArgumentError('Resource collides with executable name');
+      }
+    }
     _self ??= Self._internal(
       logger: logger,
       executableName: executableName,
       installPath: installPath,
-      resources: resources,
+      resources: Map.unmodifiable(resources),
     );
 
     return _self!;
@@ -51,23 +60,30 @@ class Self {
   /// Launches the application as a sub process.
   /// If the sub-process exits with anything other
   /// than exit code 0, we restart it.
-  Future<void> launch({required List<String> args}) async {
+  /// Stops after success or at most [maxRestarts] retries (default five).
+  /// Exhaustion throws StateError; invalid limits throw ArgumentError.
+  Future<void> launch({required List<String> args, int maxRestarts = 5}) async {
     logger.info('Launching $basename from $executableName');
 
     // start the server and relaunch it if it fails.
-    for (;;) {
-      final result = startFromArgs(
-        _pathToExecutable,
-        args,
-        nothrow: true,
-        progress: Progress(logger.info, stderr: logger.severe),
-      );
-      logger
-        ..severe('$basename failed with exitCode: ${result.exitCode}')
-        ..info('restarting $basename in 10 seconds');
-
-      await sleepAsync(10);
-    }
+    await restartOnFailure(
+      maxRestarts: maxRestarts,
+      run: () async {
+        final result = startFromArgs(
+          _pathToExecutable,
+          args,
+          nothrow: true,
+          progress: Progress(logger.info, stderr: logger.severe),
+        );
+        if (result.exitCode != 0) {
+          logger
+            ..severe('$basename failed with exitCode: ${result.exitCode}')
+            ..info('Retrying if the restart budget permits');
+        }
+        return result.exitCode!;
+      },
+      delay: () => sleepAsync(10),
+    );
   }
 
   String get _pathToExecutable => join(installPath, executableName);
@@ -94,14 +110,16 @@ class Self {
   }
 
   /// Installs the application, unpacking any resources.
+  /// The caller must prevent untrusted writes to the installation directory
+  /// and every ancestor throughout installation. Symlink checks cannot close
+  /// concurrent pathname races. Windows additionally requires trusted inherited
+  /// ACLs and no junctions/reparse points (not verified portably by dart:io).
   Future<void> install() async {
     /// Installs the application into the [installPath].
     final pathToExe = truepath(installPath, executableName);
 
     print('Creating install directory: $installPath');
-    if (!exists(installPath)) {
-      createDir(installPath);
-    }
+    checkDirectory(installPath, create: true);
 
     print('Unpacking resources');
     _unpackResources(
@@ -110,30 +128,13 @@ class Self {
       resources: resources,
     );
 
-    if (Platform.isWindows) {
-      if (exists(pathToExe)) {
-        try {
-          delete(pathToExe);
-        } on DeleteException catch (_) {
-          // probably means that the exec is running.
-          logger.severe('''
-Unable to delete $pathToExe, ensure the process has stopped and try again''');
-          rethrow;
-        }
-      }
-    }
-
     print('Installing the application');
-    // move this exe (the installer) over the existing
-    // executable renaming it as we go.
-    // This should work even if the exe is srunning.
-    // When it gets restarted it will then run the new exe.
-    final tempName = '${DartScript.self.pathToExe}.tmp';
-
-    // we copy the installer  we get to keep it
-    copy(DartScript.self.pathToExe, tempName, overwrite: true);
-
-    move(tempName, join(installPath, executableName), overwrite: true);
+    // Copy the trusted installer into private destination-side staging, then
+    // rename it over the old executable without opening the old file.
+    stageFile(
+      pathToExe,
+      (path) => File(DartScript.self.pathToExe).copySync(path),
+    );
 
     print('Installation complete.');
   }
@@ -145,16 +146,12 @@ Unable to delete $pathToExe, ensure the process has stopped and try again''');
   }) {
     logger.info('unpacking resources to: $installPath');
     for (final resource in resources.values) {
+      validateResourcePath(resource.originalPath);
       final localPathTo = truepath(installPath, resource.originalPath);
-      final resourceDir = dirname(localPathTo);
-
-      if (!exists(resourceDir)) {
-        createDir(resourceDir, recursive: true);
-      }
 
       logger.info('unpacking resources to: $localPathTo');
 
-      resource.unpack(localPathTo);
+      unpackResource(installPath, resource);
     }
   }
 }

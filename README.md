@@ -13,6 +13,60 @@ each time the system boots.
 You can also use the automatic restart service to relaunch your
 executable if it should crash (exits with a non-zero exit code)
 
+Version 0.8.1 stops on exit code zero. `launch(args: ..., maxRestarts: 5)`
+permits five retries after the initial attempt, ten seconds apart, then throws
+`StateError`. A zero retry budget runs once. Launch mode must construct child
+arguments from parsed options: `['--run', if (debug) '--debug']`. This handles
+both `-l` and `--launch` without forwarding either launcher flag.
+
+## Installation security contract
+
+The caller must protect the destination directory and every ancestor from
+untrusted replacement or modification for the entire operation. A private
+directory below a correctly configured sticky `/tmp` is suitable for tests;
+an attacker-writable installation directory is not suitable for privileged
+installation. The installer source must also be trusted and immutable while
+copied. Path checks reject existing symlinks but cannot prevent concurrent
+ancestor replacement. Dart does not expose the directory-handle based,
+no-follow operations needed to eliminate that race in hostile trees.
+
+Resources must use relative slash-separated paths without empty, dot or parent
+components. Windows drive paths, backslashes, alternate streams, reserved device
+names and trailing dots/spaces are rejected on every platform. Executable names
+must be one filename. Files are staged in unpredictable private directories on
+the destination filesystem (mode 0700 on POSIX), then renamed over regular file
+destinations. Existing POSIX resource permissions are preserved on replacement;
+new resources use the process umask. Normal write failures clean up staging and
+do not truncate existing files. Unexpected staging contents are not recursively removed and may require
+manual inspection and cleanup.
+Installation is atomic per file, not a transaction across all resources.
+
+Windows callers must supply a private inherited ACL and exclude junctions and
+other reparse points; these guarantees are not verified portably here. Replacing
+open executables can fail; no delete-first or cross-filesystem copy fallback is
+attempted. Windows platform validation remains required before privileged use.
+
+Cron executable and working-directory paths must be absolute POSIX paths. Each
+argument is separately shell-quoted; controls and `%` are rejected because cron
+interprets percent before the shell. Usernames use an ASCII whitelist. Cron
+files use the same trusted-ancestor contract and atomic replacement, with mode
+0644 on POSIX. The selected destination is replaced, so choose a unique
+`altCronPath` when executable basenames collide. Cron arguments are persisted;
+do not pass secrets in them.
+
+Release privileges immediately on startup. Wrap each scoped elevation in an
+outer `try/finally`, including when the dependency callback throws:
+
+```dart
+try {
+  Shell.current.withPrivileges(() {
+    self.addBootLauncher(args: ['--launch'], runAsUser: username);
+  });
+} finally {
+  Shell.current.releasePrivileges();
+}
+```
+
 # install
 
 To use the Self package you need to install the [dcli_sdk](https://pub.dev/packages/dcli_sdk)
@@ -136,7 +190,7 @@ Extracts and installs the application, adding a cronjob so it launches on boot.
   }
 
   if (launch) {
-    await _launch(args, self);
+    await _launch(results, self);
   }
 
   if (run) {

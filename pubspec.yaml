@@ -2,8 +2,9 @@ name: self
 description: The Self package provides utility classes to make it easy
   to create Self extracting executables that ship with resources
   or need to run on boot.
+repository: https://github.com/onepub-dev/self
   
-version: 0.8.0
+version: 0.8.1
 
 environment:
   sdk: ^3.8.0
